@@ -18,4 +18,10 @@ du fichier
 
 > A1: Il faut monter un fichier manuellement au lancement du conteneur avec l'option -v de la commande docker run. Par exemple:
 ```powershell
-PS td1> docker run --rm -it -v msg2.txt:/opt/msg.txt td1
+PS td1> docker run --rm -it -v ${PWD}/msg2.txt:/opt/msg.txt td1
+...
+not
+this
+file
+...
+```
