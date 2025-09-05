@@ -1,0 +1,5 @@
+services:
+  cat:
+    build:
+      context: .
+      dockerfile: ./image/Dockerfile
