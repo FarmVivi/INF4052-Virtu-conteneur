@@ -50,6 +50,8 @@ f. Paramétrez le déploiement de la webapp pour avoir deux répliques. Testez l
 
 ---
 
+## 1. Docker compose
+
 Charger l'image Docker de la webapp 1
 
 ```powershell
@@ -122,3 +124,15 @@ Arrêter la stack
 ```powershell
 PS td6> docker compose down
 ```
+
+## 2. Kubernetes
+
+*Pour information, j'utilise l'implementation de kubernetes fournie par Docker Desktop, et non Minikube.*
+
+```powershell
+PS td6> kubectl get all
+NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   33h
+No resources found in default namespace.
+```
+
