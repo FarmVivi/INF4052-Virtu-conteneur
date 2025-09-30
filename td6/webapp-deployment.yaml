@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f compose.yaml
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: webapp
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: webapp
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f compose.yaml
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: webapp
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: env
+          image: webapp-2:latest
+          name: td6-webapp
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always

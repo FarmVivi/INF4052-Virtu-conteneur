@@ -136,3 +136,15 @@ service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   33h
 No resources found in default namespace.
 ```
 
+```powershell
+PS td6> kompose convert -f compose.yaml
+WARN Restart policy 'unless-stopped' in service webapp is not supported, convert it to 'always' 
+WARN Restart policy 'unless-stopped' in service mongodb is not supported, convert it to 'always' 
+WARN File don't exist or failed to check if the directory is empty: CreateFile :/data/db: The filename, directory name, or volume label syntax is incorrect. 
+INFO Kubernetes file "mongodb-service.yaml" created 
+INFO Kubernetes file "webapp-service.yaml" created 
+INFO Kubernetes file "mongodb-deployment.yaml" created
+INFO Kubernetes file "env-configmap.yaml" created
+INFO Kubernetes file "td6-db-data-persistentvolumeclaim.yaml" created
+INFO Kubernetes file "webapp-deployment.yaml" created
+```
