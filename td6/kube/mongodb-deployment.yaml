@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f compose.yaml
+    kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -o kube
     kompose.version: 1.37.0 (fb0539e64)
   labels:
     io.kompose.service: mongodb
@@ -17,7 +17,7 @@ spec:
   template:
     metadata:
       annotations:
-        kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -f compose.yaml
+        kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -o kube
         kompose.version: 1.37.0 (fb0539e64)
       labels:
         io.kompose.service: mongodb

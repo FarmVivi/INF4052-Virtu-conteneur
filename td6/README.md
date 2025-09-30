@@ -137,7 +137,7 @@ No resources found in default namespace.
 ```
 
 ```powershell
-PS td6> kompose convert -f compose.yaml
+PS td6> kompose convert -f compose.yaml -o kube
 WARN Restart policy 'unless-stopped' in service webapp is not supported, convert it to 'always' 
 WARN Restart policy 'unless-stopped' in service mongodb is not supported, convert it to 'always' 
 WARN File don't exist or failed to check if the directory is empty: CreateFile :/data/db: The filename, directory name, or volume label syntax is incorrect. 
