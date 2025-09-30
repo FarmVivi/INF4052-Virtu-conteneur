@@ -148,3 +148,15 @@ INFO Kubernetes file "env-configmap.yaml" created
 INFO Kubernetes file "td6-db-data-persistentvolumeclaim.yaml" created
 INFO Kubernetes file "webapp-deployment.yaml" created
 ```
+
+Appliquer les configurations
+
+```powershell
+PS td6/kube> kubectl apply -f .
+configmap/env created
+deployment.apps/mongodb created
+service/mongodb created
+persistentvolumeclaim/td6-db-data created
+deployment.apps/webapp created
+service/webapp created
+```
