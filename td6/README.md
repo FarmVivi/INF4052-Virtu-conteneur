@@ -189,23 +189,102 @@ Regardons à nouveau les status des ressources.
 
 ```powershell
 PS td6/kube> kubectl get all
-NAME                           READY   STATUS    RESTARTS      AGE
-pod/mongodb-7fd446dc6f-f7zwk   1/1     Running   5 (62s ago)   13m
-pod/webapp-77c49b79f5-m2krj    1/1     Running   0             4s
+NAME                           READY   STATUS             RESTARTS       AGE
+pod/mongodb-7fd446dc6f-f7zwk   0/1     CrashLoopBackOff   14 (57s ago)   55m
+pod/webapp-77c49b79f5-m2krj    1/1     Running            0              42m
 
 NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
-service/kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP     13m
-service/mongodb      ClusterIP   10.108.207.196   <none>        27017/TCP   13m
-service/webapp       ClusterIP   10.106.192.207   <none>        8080/TCP    13m
+service/kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP     56m
+service/mongodb      ClusterIP   10.108.207.196   <none>        27017/TCP   55m
+service/webapp       ClusterIP   10.106.192.207   <none>        8080/TCP    55m
 
 NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/mongodb   1/1     1            1           13m
-deployment.apps/webapp    1/1     1            1           13m
+deployment.apps/mongodb   0/1     1            0           55m
+deployment.apps/webapp    1/1     1            1           55m
 
 NAME                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/mongodb-7fd446dc6f   1         1         1       13m
-replicaset.apps/webapp-77c49b79f5    1         1         1       4s
-replicaset.apps/webapp-7f7f69f6f7    0         0         0       13m
+replicaset.apps/mongodb-7fd446dc6f   1         1         0       55m
+replicaset.apps/webapp-77c49b79f5    1         1         1       42m
+replicaset.apps/webapp-7f7f69f6f7    0         0         0       55m
 ```
 
-Tout fonctionne correctement maintenant :)
+On convertit le Deployment de la base de données MongoDB en StatefulSet pour bénéficier d'un stockage persistant.
+On suit la documentation officielle de Kubernetes pour créer un StatefulSet : https://kubernetes.io/fr/docs/concepts/workloads/controllers/statefulset/
+
+- Dans le fichier `mongodb-service.yaml`, on ajoute `clusterIP: None` pour rendre le service headless.
+- On renomme le fichier `mongodb-deployment.yaml` en `mongodb-statefulset.yaml` et on remplace `kind: Deployment` par `kind: StatefulSet`.
+- On ajoute le nom du service headless dans `serviceName: mongodb`.
+- On déplace la section `volumes` dans une nouvelle section `volumeClaimTemplates` pour que chaque pod ait son propre volume persistant.
+- On supprime la section `strategy` qui n'est pas supportée par les StatefulSets.
+- On ajoute un nouveau paramètre `gracefulTerminationPeriodSeconds` dans la section `spec` pour donner le temps au pod de se terminer proprement.
+
+Dans notre cluster local, on supprime l'ancien Deployment et on applique le nouveau StatefulSet et recrée le Service.
+
+```powershell
+PS td6/kube> kubectl delete deployment mongodb
+PS td6/kube> kubectl delete service mongodb
+PS td6/kube> kubectl apply -f mongodb-statefulset.yaml
+PS td6/kube> kubectl apply -f mongodb-service.yaml
+```
+
+Regardons à nouveau les status des ressources.
+
+```powershell
+PS td6/kube> kubectl get all
+NAME                          READY   STATUS    RESTARTS       AGE
+pod/mongodb-0                 1/1     Running   2 (2m6s ago)   7m6s
+pod/webapp-77c49b79f5-m926f   1/1     Running   0              50m
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP     53m
+service/mongodb      ClusterIP   None           <none>        27017/TCP   6m26s
+service/webapp       ClusterIP   10.100.118.4   <none>        8080/TCP    50m
+
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/webapp   1/1     1            1           50m
+
+NAME                                DESIRED   CURRENT   READY   AGE
+replicaset.apps/webapp-77c49b79f5   1         1         1       50m
+
+NAME                       READY   AGE
+statefulset.apps/mongodb   1/1     7m7s
+```
+
+Maintenant on va rajouter des probes de readiness pour s'assurer que les pods sont prêts avant de recevoir du trafic.
+
+Dans le fichier `webapp-deployment.yaml`, on ajoute la section suivante dans le container de la webapp :
+
+```yaml
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 5
+```
+
+Dans le fichier `mongodb-statefulset.yaml`, on ajoute la section suivante dans le container de MongoDB :
+
+```yaml
+        readinessProbe:
+          exec:
+            command:
+              - mongo
+              - --eval
+              - db.adminCommand('ping')
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 5
+```
+
+Appliquer les modifications
+
+```powershell
+PS td6/kube> kubectl apply -f webapp-deployment.yaml
+PS td6/kube> kubectl apply -f mongodb-statefulset.yaml
+```

@@ -8,6 +8,7 @@ metadata:
     io.kompose.service: mongodb
   name: mongodb
 spec:
+  clusterIP: None  # Service headless pour StatefulSet
   ports:
     - name: "27017"
       port: 27017

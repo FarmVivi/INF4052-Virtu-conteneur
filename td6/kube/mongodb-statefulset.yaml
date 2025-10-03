@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   annotations:
     kompose.cmd: C:\Users\victo\AppData\Local\Microsoft\WinGet\Links\kompose.exe convert -o kube
@@ -9,11 +9,10 @@ metadata:
   name: mongodb
 spec:
   replicas: 1
+  serviceName: mongodb
   selector:
     matchLabels:
       io.kompose.service: mongodb
-  strategy:
-    type: Recreate
   template:
     metadata:
       annotations:
@@ -22,6 +21,7 @@ spec:
       labels:
         io.kompose.service: mongodb
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - env:
             - name: MONGO_INITDB_DATABASE
@@ -50,7 +50,11 @@ spec:
             - mountPath: /data/db
               name: td6-db-data
       restartPolicy: Always
-      volumes:
-        - name: td6-db-data
-          persistentVolumeClaim:
-            claimName: td6-db-data
+  volumeClaimTemplates:
+    - metadata:
+        name: td6-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
