@@ -1,0 +1,41 @@
+services:
+  gitea:
+    image: docker.gitea.com/gitea:1.24.6
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: unless-stopped
+    networks:
+      - gitea
+    volumes:
+      - gitea-data:/data
+    ports:
+      - "3000:3000"
+      - "222:22"
+
+  runner:
+    image: docker.io/gitea/act_runner:0.2.13
+    container_name: gitea-runner
+    environment:
+      - GITEA_INSTANCE_URL=http://gitea:3000
+      - GITEA_RUNNER_REGISTRATION_TOKEN=y3wgKgAvzEpCYlYwbjgrAAfZMy1iiOT2QM6LIlQv
+      - GITEA_RUNNER_NAME=td7-runner
+      - CONFIG_FILE=/config.yaml
+    restart: unless-stopped
+    depends_on:
+      - gitea
+    networks:
+      - gitea
+    volumes:
+      - gitea-runner-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PWD}/config.yaml:/config.yaml:ro
+
+volumes:
+  gitea-data:
+  gitea-runner-data:
+
+networks:
+  gitea:
+    name: gitea
