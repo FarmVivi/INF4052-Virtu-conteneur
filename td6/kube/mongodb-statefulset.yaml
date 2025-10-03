@@ -63,12 +63,8 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: td6-db-data
+      volumes:
+        - name: td6-db-data
+          persistentVolumeClaim:
+            claimName: td6-db-data
       restartPolicy: Always
-  volumeClaimTemplates:
-    - metadata:
-        name: td6-db-data
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi

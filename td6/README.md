@@ -214,9 +214,9 @@ On suit la documentation officielle de Kubernetes pour créer un StatefulSet : h
 - Dans le fichier `mongodb-service.yaml`, on ajoute `clusterIP: None` pour rendre le service headless.
 - On renomme le fichier `mongodb-deployment.yaml` en `mongodb-statefulset.yaml` et on remplace `kind: Deployment` par `kind: StatefulSet`.
 - On ajoute le nom du service headless dans `serviceName: mongodb`.
-- On déplace la section `volumes` dans une nouvelle section `volumeClaimTemplates` pour que chaque pod ait son propre volume persistant.
 - On supprime la section `strategy` qui n'est pas supportée par les StatefulSets.
-- On ajoute un nouveau paramètre `gracefulTerminationPeriodSeconds` dans la section `spec` pour donner le temps au pod de se terminer proprement.
+- On configure `terminationGracePeriodSeconds` dans la `spec` pour laisser à MongoDB le temps de s'arrêter proprement.
+- On augmente la taille du PersistentVolumeClaim à 1Gi dans `td6-db-data-persistentvolumeclaim.yaml` pour éviter les problèmes d'espace disque de MongoDB.
 
 Dans notre cluster local, on supprime l'ancien Deployment et on applique le nouveau StatefulSet et recrée le Service.
 
