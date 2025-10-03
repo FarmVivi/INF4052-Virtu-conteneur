@@ -22,10 +22,18 @@ Comment modifier le message affiché sans générer une nouvelle image ? Donnez 
 
 ---
 
+## Synthèse
+- Image `td1` construite localement à partir du Dockerfile fourni.
+- Exécution du conteneur pour afficher le contenu de `/opt/msg.txt`.
+- Variation du message en montant un fichier alternatif depuis l'hôte.
+
+## Procédure
+### Construction de l'image
 ```powershell
 PS td1> docker build -t td1 .
 ```
 
+### Exécution par défaut
 ```powershell
 PS td1> docker run --rm -it td1
 ...
@@ -34,9 +42,9 @@ du fichier
 ...
 ```
 
-> Q1: Comment modifier le message affiché sans générer une nouvelle image? Donnez la commande qui vous permet d'afficher un fichier depuis la machine hôte.
-
-> A1: Il faut monter un fichier manuellement au lancement du conteneur avec l'option -v de la commande docker run. Par exemple:
+## Réponses
+### Q1 — Modifier le message sans reconstruire l'image
+- Monter un fichier local au démarrage grâce à `-v` pour remplacer `/opt/msg.txt`.
 ```powershell
 PS td1> docker run --rm -it -v ${PWD}/msg2.txt:/opt/msg.txt td1
 ...

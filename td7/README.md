@@ -34,57 +34,46 @@ Il est demandé de rendre un petit rapport pour répondre aux questions et expli
 
 ---
 
-## 1. Gitea
+## Synthèse
+- Stack Gitea + runner opérationnelle sur le réseau Docker `gitea`, configurée via `compose.yaml` et `config.yaml` généré.
+- Dépôt Webapp hébergé sur Gitea, pipeline `.gitea/workflows/build.yaml` exécutée avec succès (tests `cargo`).
 
-1. On prépare les fichiers.
+## Procédure
+### 1. Gitea & runner
+1. Préparer la configuration :
+    ```powershell
+    PS td7> docker run --entrypoint="" --rm -it docker.io/gitea/act_runner:latest act_runner generate-config > config.yaml
+    ```
+    - Ajouter le réseau `gitea` dans `config.yaml` (`container.network`).
+    - Étendre `compose.yaml` avec le service `gitea-runner` et les volumes Docker.
+2. Démarrer la stack puis finaliser l'instance sur `http://localhost:3000` :
+    ```powershell
+    PS td7> docker compose up
+    ```
+3. Récupérer le token Actions (`Site administration ▸ Actions ▸ Runners`), l’injecter dans `compose.yaml` (`GITEA_RUNNER_REGISTRATION_TOKEN`) et relancer :
+    ```powershell
+    PS td7> docker compose up
+    ```
+4. Vérifier que le runner est `online` dans l’interface Gitea.
 
-On récupère `compose.yaml` depuis le site officiel de Gitea. A celui-ci, on ajoute un service `gitea-runner` en s’inspirant de la documentation Gitea Actions.
+### 2. Webapp – CI/CD
+1. Initialiser et pousser le dépôt vers Gitea :
+    ```powershell
+    PS td7> mkdir Webapp
+    PS td7> cd Webapp
+    PS td7\Webapp> git init
+    PS td7\Webapp> git remote add origin http://localhost:3000/vvaizand/Webapp.git
+    PS td7\Webapp> git add .
+    PS td7\Webapp> git commit -m "Initial commit"
+    PS td7\Webapp> git push -u origin main
+    ```
+2. Créer `.gitea/workflows/build.yaml` :
+    - Image Rust via `dtolnay/rust-toolchain`.
+    - Service Postgres déclaré dans `services`.
+    - Variables d’environnement `MONGODB_USER/PASSWORD/HOST` pour la webapp.
+    - Étape principale `cargo test`.
+3. Pousser sur `main`, suivre l’exécution dans l’onglet **Actions** et valider le succès du run.
 
-On génère le fichier `config.yaml` par défaut en lançant la commande suivante :
-
-```powershell
-PS td7> docker run --entrypoint="" --rm -it docker.io/gitea/act_runner:latest act_runner generate-config > config.yaml
-```
-
-Dans la `config.yaml`, on ajoute le réseau docker `gitea` dans la section `container -> network`.
-
-2. On démarre la stack.
-
-```powershell
-PS td7> docker compose up
-```
-
-3. On finalise Gitea sur `http://localhost:3000` (création admin + instance).
-4. On copie le token du runner dans **Site administration ▸ Actions ▸ Runners**.
-
-On modifie le `compose.yaml` pour y insérer le token dans la variable d’environnement `GITEA_RUNNER_REGISTRATION_TOKEN`.
-
-On relance la stack.
-
-```powershell
-PS td7> docker compose up
-```
-
-5. On vérifie que le nouveau runner est présent dans **Site administration ▸ Actions ▸ Runners**.
-
-All good :)
-
-## 2. Webapp – CI/CD
-
-1. On crée un dépôt `Webapp` sur Gitea et on pousse les sources Rust téléchargées depuis le Moodle.
-
-```powershell
-PS td7> mkdir Webapp
-PS td7> cd Webapp
-PS td7\Webapp> git init
-PS td7\Webapp> git remote add origin http://localhost:3000/vvaizand/Webapp.git
-PS td7\Webapp> git add .
-PS td7\Webapp> git commit -m "Initial commit"
-PS td7\Webapp> git push -u origin main
-```
-
-2. On crée le fichier `.gitea/workflows/build.yaml` dans le dépôt pour définir la pipeline.
-3. On pousse sur `main` pour déclencher l’action et on lit les logs dans l’onglet **Actions**.
-4. On vérifie que l'Action a réussi sans erreur dans l'interface Gitea.
-
-Well done !
+## Points clés
+- Le réseau Docker explicite dans `config.yaml` garantit que les conteneurs lancés par le runner rejoignent `gitea`.
+- Le fichier d’action réutilise la logique GitHub Actions, facilitant l’ajout du service Postgres et des variables MongoDB pour les tests Rust.

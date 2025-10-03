@@ -62,10 +62,27 @@ server.listen(port, (err) => {
 
 ---
 
+## Synthèse
+- Image Node.js construite avec les dépendances et le serveur HTTP.
+- Conteneur exposé sur `3030`, testé depuis l’hôte et depuis l’environnement du conteneur.
+
+## Procédure
+### Construction de l'image
 ```powershell
 PS td2> docker build -t td2 .
 ```
 
+### Exécution et vérifications
 ```powershell
 PS td2> docker run --rm -it -p 3030:3030 td2
+```
+
+Depuis l'hôte :
+```powershell
+PS td2> curl http://localhost:3030
+```
+
+Depuis le conteneur (session interactive ouverte par `docker run`) :
+```bash
+curl http://localhost:3030
 ```
