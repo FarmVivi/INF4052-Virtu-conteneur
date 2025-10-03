@@ -25,6 +25,7 @@ spec:
             - configMapRef:
                 name: env
           image: webapp-2:latest
+          imagePullPolicy: IfNotPresent
           name: td6-webapp
           ports:
             - containerPort: 8080

@@ -160,3 +160,52 @@ persistentvolumeclaim/td6-db-data created
 deployment.apps/webapp created
 service/webapp created
 ```
+
+Récupérer les status des ressources
+
+```powershell
+PS td6/kube> kubectl get all
+NAME                           READY   STATUS         RESTARTS   AGE
+pod/mongodb-7fd446dc6f-f7zwk   1/1     Running        0          98s
+pod/webapp-7f7f69f6f7-zz776    0/1     ErrImagePull   0          98s
+
+NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+service/kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP     2m2s
+service/mongodb      ClusterIP   10.108.207.196   <none>        27017/TCP   98s
+service/webapp       ClusterIP   10.106.192.207   <none>        8080/TCP    98s
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/mongodb   1/1     1            1           98s
+deployment.apps/webapp    0/1     1            0           98s
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/mongodb-7fd446dc6f   1         1         1       98s
+replicaset.apps/webapp-7f7f69f6f7    1         1         0       98s
+```
+
+Le pod de la webapp n'a pas pu démarrer car l'image n'a pas été trouvée sur un registry. Normal puisque nous avons build l'image localement. Pour que Kubernetes puisse utiliser cette image, il faut lui indiquer de ne pas tenter de la récupérer depuis un registry. Pour cela, il faut modifier le fichier `webapp-deployment.yaml` et ajouter la ligne `imagePullPolicy: IfNotPresent` dans la section `containers`.
+
+Regardons à nouveau les status des ressources.
+
+```powershell
+PS td6/kube> kubectl get all
+NAME                           READY   STATUS    RESTARTS      AGE
+pod/mongodb-7fd446dc6f-f7zwk   1/1     Running   5 (62s ago)   13m
+pod/webapp-77c49b79f5-m2krj    1/1     Running   0             4s
+
+NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+service/kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP     13m
+service/mongodb      ClusterIP   10.108.207.196   <none>        27017/TCP   13m
+service/webapp       ClusterIP   10.106.192.207   <none>        8080/TCP    13m
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/mongodb   1/1     1            1           13m
+deployment.apps/webapp    1/1     1            1           13m
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/mongodb-7fd446dc6f   1         1         1       13m
+replicaset.apps/webapp-77c49b79f5    1         1         1       4s
+replicaset.apps/webapp-7f7f69f6f7    0         0         0       13m
+```
+
+Tout fonctionne correctement maintenant :)
