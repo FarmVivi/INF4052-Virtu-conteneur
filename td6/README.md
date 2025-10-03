@@ -257,7 +257,7 @@ Dans le fichier `webapp-deployment.yaml`, on ajoute la section suivante dans le 
 ```yaml
         readinessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -272,9 +272,25 @@ Dans le fichier `mongodb-statefulset.yaml`, on ajoute la section suivante dans l
         readinessProbe:
           exec:
             command:
-              - mongo
+              - mongosh
               - --eval
-              - db.adminCommand('ping')
+              - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+          timeoutSeconds: 5
+```
+
+On plus dans le fichier `mongodb-statefulset.yaml`, on harmonise la livenessProbe avec la readinessProbe en utilisant la même commande :
+
+```yaml
+        livenessProbe:
+          exec:
+            command:
+              - mongosh
+              - --eval
+              - "db.adminCommand('ping')"
           initialDelaySeconds: 30
           periodSeconds: 10
           failureThreshold: 3
@@ -287,4 +303,29 @@ Appliquer les modifications
 ```powershell
 PS td6/kube> kubectl apply -f webapp-deployment.yaml
 PS td6/kube> kubectl apply -f mongodb-statefulset.yaml
+```
+
+Vérifier que les ressources sont bien déployées avec 2 répliques pour la webapp :
+
+```powershell
+PS td6/kube> kubectl get all
+NAME                          READY   STATUS    RESTARTS      AGE
+pod/mongodb-0                 1/1     Running   1 (11m ago)   105m
+pod/webapp-5449674776-q5b7g   1/1     Running   1 (27m ago)   108m
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)     AGE
+service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP     3h28m
+service/mongodb      ClusterIP   None           <none>        27017/TCP   160m
+service/webapp       ClusterIP   10.100.118.4   <none>        8080/TCP    3h25m
+
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/webapp   1/1     1            1           3h25m
+
+NAME                                DESIRED   CURRENT   READY   AGE
+replicaset.apps/webapp-5449674776   1         1         1       108m
+replicaset.apps/webapp-5dd6b684bb   0         0         0       111m
+replicaset.apps/webapp-77c49b79f5   0         0         0       3h25m
+
+NAME                       READY   AGE
+statefulset.apps/mongodb   1/1     161m
 ```
