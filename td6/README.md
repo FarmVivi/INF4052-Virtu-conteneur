@@ -329,3 +329,29 @@ replicaset.apps/webapp-77c49b79f5   0         0         0       3h25m
 NAME                       READY   AGE
 statefulset.apps/mongodb   1/1     161m
 ```
+
+Bon c'est bien tout ça, mais comment on accède à la webapp maintenant ? Le service est de type ClusterIP, donc accessible uniquement depuis le cluster. Pour remédier à cela et y accéder depuis mon Windows, je vais modifier le service de la webapp pour le passer en NodePort.
+Ma configuration actuelle ne m'autorise pas à utiliser le port 8080, lorsque j'essaie d'appliquer la modification, j'ai l'erreur suivante :
+```
+The Service "webapp" is invalid: spec.ports[0].nodePort: Invalid value: 8080: provided port is not in the valid range. The range of valid ports is 30000-32767
+```
+Je vais donc utiliser le port 32080 à la place.
+
+```yaml
+spec:
+  type: NodePort
+  ports:
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
+      nodePort: 32080
+```
+
+Appliquer la modification
+
+```powershell
+PS td6/kube> kubectl apply -f webapp-service.yaml
+```
+
+Désormais, je peux accéder à la webapp depuis mon Windows en utilisant l'URL suivante : `http://localhost:32080` :)
+
