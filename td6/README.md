@@ -355,3 +355,35 @@ PS td6/kube> kubectl apply -f webapp-service.yaml
 
 Désormais, je peux accéder à la webapp depuis mon Windows en utilisant l'URL suivante : `http://localhost:32080` :)
 
+Bien maintenant, comme demandé, je vais configurer la webapp pour qu'elle ait 2 répliques. Dans le fichier `webapp-deployment.yaml`, on remplace `replicas: 1` par `replicas: 2`.
+
+On applique la modification
+
+```powershell
+PS td6/kube> kubectl apply -f webapp-deployment.yaml
+```
+
+On monitore l'état des pods
+
+```powershell
+PS td6/kube> kubectl get pods -w
+```
+
+Ok une fois que les deux pods sont en état `Running`, lorsque j'accède à la webapp et que je fais F5 pour rafraîchir la page, je vois que l'ID du pod change entre les deux répliques (il faut attendre quelques secondes entre chaque F5 pour que le load balancer de Kubernetes ait le temps de rediriger la requête vers l'autre pod).
+
+Bien mantenant on va tuer un des pods de la webapp pour tester la redondance.
+
+```powershell
+PS td6/kube> kubectl delete pod webapp-5449674776-xxxxx
+```
+
+On voit qu'un nouveau pod est créé automatiquement par le Deployment pour remplacer celui qui a été supprimé. Pendant ce temps, l'autre pod continue de servir les requêtes, assurant ainsi la continuité du service.
+Si on supprime les deux pods en même temps, le service est indisponible pendant quelques secondes, le temps que les deux nouveaux pods soient créés et prêts à servir les requêtes.
+
+# The End
+
+Si on veut tout nettoyer :
+
+```powershell
+PS td6/kube> kubectl delete -f .
+```
