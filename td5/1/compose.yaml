@@ -3,3 +3,10 @@ services:
     build:
       context: .
       dockerfile: ./image/Dockerfile
+    configs:
+      - source: message
+        target: /opt/msg.txt
+
+configs:
+  message:
+    file: ./msg.txt
